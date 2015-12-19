@@ -8,48 +8,53 @@ var gulp = require('gulp'),
     rename = require('gulp-rename'),
     concat = require('gulp-concat'),
     notify = require('gulp-notify'),
-    del = require('del');
+    del = require('del'),
+    browserSync = require('browser-sync');
+	reload = browserSync.reload;
 
 gulp.task('styles',function(){
-  gulp.src('./src/sass/*.scss')
+  gulp.src('./app/src/sass/*.scss')
     .pipe(sass())
     .pipe(autoprefixer('last 2 version'))
     .pipe(concat('main.css'))
-    .pipe(gulp.dest('./dist/css'))
+    .pipe(gulp.dest('./app/dist/css'))
     .pipe(rename({suffix: '.min'}))
     .pipe(minifycss())
-    .pipe(gulp.dest('./dist/css'))
+    .pipe(gulp.dest('./app/dist/css'))
     .pipe(notify('Style task complete'))
+    .pipe(reload({ stream:true }));
 
 })
 
 gulp.task('scripts',function(){
-  gulp.src('./src/coffee/*.coffee')
+  gulp.src('./app/src/coffee/*.coffee')
     .pipe(coffee({bare: true}))
     .pipe(concat('main.js'))
-    .pipe(gulp.dest('./dist/js'))
+    .pipe(gulp.dest('./app/dist/js'))
     .pipe(uglify())
     .pipe(rename({suffix: '.min'}))
-    .pipe(gulp.dest('./dist/js'))
+    .pipe(gulp.dest('./app/dist/js'))
     .pipe(notify('Scripts task complete'))
+    .pipe(reload({ stream:true }));
 })
 
 gulp.task('templates', function() {
   var YOUR_LOCALS = {};
  
-  gulp.src('./views/**/*.jade')
+  gulp.src('./app/views/**/*.jade')
     .pipe(jade({
       locals: YOUR_LOCALS
     }))
-    .pipe(gulp.dest('./'))
+    .pipe(gulp.dest('./app/'))
     .pipe(notify("Templates task complete"))
+    .pipe(reload({ stream:true }));
 });
 
 
 
 
 gulp.task('clean',function(cb){
-  del(['./dist'],cb)
+  del(['./app/dist'],cb)
 })
 
 
@@ -57,8 +62,21 @@ gulp.task('default',['clean'],function(){
   gulp.start('styles','scripts','templates');
 })
 
+// 监视文件改动并重新载入
+gulp.task('serve',['watch'],function() {
+  browserSync({
+    server: {
+    	baseDir: 'app'
+    }
+
+
+  });
+  gulp.watch(['*.html', 'styles/**/*.css', 'scripts/**/*.js'], {cwd: 'app'}, reload);
+
+});
+
 gulp.task('watch',function(){
-  gulp.watch('./src/sass/*.scss',['styles']);
-  gulp.watch('./src/coffee/*.coffee',['scripts']);
-  gulp.watch('./views/*.jade',['templates']);
+  gulp.watch('./app/src/sass/*.scss',['styles']);
+  gulp.watch('./app/src/coffee/*.coffee',['scripts']);
+  gulp.watch('./app/views/*.jade',['templates']);
 })
